@@ -5,6 +5,8 @@
 #include "pthread_impl.h"
 #include "fork_impl.h"
 
+void __hq_pointer_invalidate(const void **);
+
 static volatile int *const dummy_lockptr = 0;
 
 weak_alias(dummy_lockptr, __at_quick_exit_lockptr);
@@ -44,6 +46,14 @@ static void dummy_0(void) { }
 weak_alias(dummy_0, __tl_lock);
 weak_alias(dummy_0, __tl_unlock);
 
+int do_fork(void *arg) {
+#ifdef SYS_fork
+	return __syscall(SYS_fork);
+#else
+	return __syscall(SYS_clone, SIGCHLD, 0);
+#endif
+}
+
 pid_t fork(void)
 {
 	sigset_t set;
@@ -59,12 +69,14 @@ pid_t fork(void)
 		__tl_lock();
 	}
 	pthread_t self=__pthread_self(), next=self->next;
-	pid_t ret = _Fork();
+	pid_t ret = _Fork(do_fork, NULL);
 	int errno_save = errno;
 	if (need_locks) {
 		if (!ret) {
-			for (pthread_t td=next; td!=self; td=td->next)
+			for (pthread_t td=next; td!=self; td=td->next) {
+				__hq_pointer_invalidate((const void **)&td->tid);
 				td->tid = -1;
+			}
 			if (__vmlock_lockptr) {
 				__vmlock_lockptr[0] = 0;
 				__vmlock_lockptr[1] = 0;
@@ -73,9 +85,10 @@ pid_t fork(void)
 		__tl_unlock();
 		__malloc_atfork(!ret);
 		for (int i=0; i<sizeof atfork_locks/sizeof *atfork_locks; i++)
-			if (*atfork_locks[i])
+			if (*atfork_locks[i]) {
 				if (ret) UNLOCK(*atfork_locks[i]);
 				else **atfork_locks[i] = 0;
+			}
 		__release_ptc();
 		__ldso_atfork(!ret);
 	}

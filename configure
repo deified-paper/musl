@@ -582,7 +582,7 @@ tryldflag LDFLAGS_AUTO -Wl,--no-undefined
 # Avoid exporting symbols from compiler runtime libraries. They
 # should be hidden anyway, but some toolchains including old gcc
 # versions built without shared library support and pcc are broken.
-tryldflag LDFLAGS_AUTO -Wl,--exclude-libs=ALL
+#tryldflag LDFLAGS_AUTO -Wl,--exclude-libs=ALL
 
 # Public data symbols must be interposable to allow for copy
 # relocations, but otherwise we want to bind symbols at libc link

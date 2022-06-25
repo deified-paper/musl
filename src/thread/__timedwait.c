@@ -16,14 +16,14 @@ static int __futex4_cp(volatile void *addr, int op, int val, const struct timesp
 	long ns = to ? to->tv_nsec : 0;
 	r = -ENOSYS;
 	if (SYS_futex == SYS_futex_time64 || !IS32BIT(s))
-		r = __syscall_cp(SYS_futex_time64, addr, op, val,
+		r = __hq_raw_syscall4(SYS_futex_time64, addr, op, val,
 			to ? ((long long[]){s, ns}) : 0);
 	if (SYS_futex == SYS_futex_time64 || r!=-ENOSYS) return r;
 	to = to ? (void *)(long[]){CLAMP(s), ns} : 0;
 #endif
-	r = __syscall_cp(SYS_futex, addr, op, val, to);
+	r = __hq_raw_syscall4(SYS_futex, (unsigned long)addr, op, val, (unsigned long)to);
 	if (r != -ENOSYS) return r;
-	return __syscall_cp(SYS_futex, addr, op & ~FUTEX_PRIVATE, val, to);
+	return __hq_raw_syscall4(SYS_futex, (unsigned long)addr, op & ~FUTEX_PRIVATE, val, (unsigned long)to);
 }
 
 static volatile int dummy = 0;

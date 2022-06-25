@@ -550,3 +550,7 @@ void __malloc_atfork(int who)
 		mal.split_merge_lock[0] = 0;
 	}
 }
+
+weak_alias(free, __libc_free);
+weak_alias(malloc, __libc_malloc);
+weak_alias(realloc, __libc_realloc);

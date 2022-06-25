@@ -237,6 +237,8 @@ __REDIR(pthread_timedjoin_np, __pthread_timedjoin_np_time64);
 #endif
 #endif
 
+int futex(unsigned int *addr, int op, unsigned int val, const struct timespec *timeout, unsigned int *addr2, unsigned int addr3);
+
 #ifdef __cplusplus
 }
 #endif

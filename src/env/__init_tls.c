@@ -11,14 +11,37 @@
 
 volatile int __thread_list_lock;
 
+void __hq_pointer_define(const void **, void *, int);
+
+// Initialization must use uninstrumented system calls
+int __hq_init_tp(void *p)
+{
+	pthread_t td = p;
+	td->self = td;
+	int r = __hq_raw_syscall2(SYS_arch_prctl, 0x1002 /*ARCH_SET_FS*/, (unsigned long)TP_ADJ(p));
+	if (r < 0) return -1;
+	if (!r) libc.can_do_threads = 1;
+	td->detach_state = DT_JOINABLE;
+	td->tid = __hq_raw_syscall1(SYS_set_tid_address, (unsigned long)&__thread_list_lock);
+	td->locale = &libc.global_locale;
+	td->robust_list.head = &td->robust_list.head;
+	td->sysinfo = __sysinfo;
+	td->next = td->prev = td;
+	return 0;
+}
+
 int __init_tp(void *p)
 {
 	pthread_t td = p;
 	td->self = td;
+	// Copy the old value since __set_thread_area will change TLS region
+	td->tid = __pthread_self()->tid;
+	__hq_pointer_define((const void **)&td->tid, (void *)(intptr_t)td->tid, 0);
 	int r = __set_thread_area(TP_ADJ(p));
 	if (r < 0) return -1;
 	if (!r) libc.can_do_threads = 1;
 	td->detach_state = DT_JOINABLE;
+	// Set the new value and update it
 	td->tid = __syscall(SYS_set_tid_address, &__thread_list_lock);
 	td->locale = &libc.global_locale;
 	td->robust_list.head = &td->robust_list.head;

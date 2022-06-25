@@ -217,3 +217,5 @@ long sysconf(int name)
 	}
 	return values[name];
 }
+
+weak_alias(sysconf, __sysconf);

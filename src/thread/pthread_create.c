@@ -7,6 +7,9 @@
 #include <string.h>
 #include <stddef.h>
 
+void __hq_pointer_define(const void **, const void *, int);
+void __hq_pointer_invalidate(const void **);
+
 static void dummy_0()
 {
 }
@@ -162,10 +165,11 @@ _Noreturn void __pthread_exit(void *result)
 	/* After the kernel thread exits, its tid may be reused. Clear it
 	 * to prevent inadvertent use and inform functions that would use
 	 * it that it's no longer available. */
+	__hq_pointer_invalidate((const void **)&self->tid);
 	self->tid = 0;
 	UNLOCK(self->killlock);
 
-	for (;;) __syscall(SYS_exit, 0);
+	for (;;) __hq_raw_syscall1(SYS_exit, 0);
 }
 
 void __do_cleanup_push(struct __ptcb *cb)
@@ -189,6 +193,7 @@ struct start_args {
 
 static int start(void *p)
 {
+	const struct pthread *self = __pthread_self();
 	struct start_args *args = p;
 	int state = args->control;
 	if (state) {
@@ -199,6 +204,7 @@ static int start(void *p)
 			for (;;) __syscall(SYS_exit, 0);
 		}
 	}
+    __hq_pointer_define((const void **)&self->tid, (void *)(intptr_t)self->tid, 0);
 	__syscall(SYS_rt_sigprocmask, SIG_SETMASK, &args->sig_mask, 0, _NSIG/8);
 	__pthread_exit(args->start_func(args->start_arg));
 	return 0;

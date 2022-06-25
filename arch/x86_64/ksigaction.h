@@ -7,5 +7,5 @@ struct k_sigaction {
 	unsigned mask[2];
 };
 
-hidden void __restore_rt();
+void __restore_rt();
 #define __restore __restore_rt

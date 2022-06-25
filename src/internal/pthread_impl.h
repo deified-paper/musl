@@ -139,6 +139,7 @@ enum {
 	 0x80000000 })
 
 void *__tls_get_addr(tls_mod_off_t *);
+hidden int __hq_init_tp(void *);
 hidden int __init_tp(void *);
 hidden void *__copy_tls(unsigned char *);
 hidden void __reset_tls();
@@ -169,14 +170,14 @@ static inline void __wake(volatile void *addr, int cnt, int priv)
 {
 	if (priv) priv = FUTEX_PRIVATE;
 	if (cnt<0) cnt = INT_MAX;
-	__syscall(SYS_futex, addr, FUTEX_WAKE|priv, cnt) != -ENOSYS ||
-	__syscall(SYS_futex, addr, FUTEX_WAKE, cnt);
+	__hq_raw_syscall3(SYS_futex, (uintptr_t)addr, FUTEX_WAKE|priv, cnt) != -ENOSYS ||
+	__hq_raw_syscall3(SYS_futex, (uintptr_t)addr, FUTEX_WAKE, cnt);
 }
 static inline void __futexwait(volatile void *addr, int val, int priv)
 {
 	if (priv) priv = FUTEX_PRIVATE;
-	__syscall(SYS_futex, addr, FUTEX_WAIT|priv, val, 0) != -ENOSYS ||
-	__syscall(SYS_futex, addr, FUTEX_WAIT, val, 0);
+	__hq_raw_syscall4(SYS_futex, (uintptr_t)addr, FUTEX_WAIT|priv, val, 0) != -ENOSYS ||
+	__hq_raw_syscall4(SYS_futex, (uintptr_t)addr, FUTEX_WAIT, val, 0);
 }
 
 hidden void __acquire_ptc(void);

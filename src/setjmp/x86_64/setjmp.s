@@ -2,6 +2,7 @@
 .global __setjmp
 .global _setjmp
 .global setjmp
+.extern __hq_object_define
 .type __setjmp,@function
 .type _setjmp,@function
 .type setjmp,@function
@@ -18,5 +19,10 @@ setjmp:
 	mov %rdx,48(%rdi)
 	mov (%rsp),%rdx         /* save return addr ptr for new rip */
 	mov %rdx,56(%rdi)
-	xor %eax,%eax           /* always return 0 */
+
+	mov $64,%rsi
+	xor %rdx,%rdx
+	call __hq_object_define
+
+	xor %rax,%rax           /* always return 0 */
 	ret

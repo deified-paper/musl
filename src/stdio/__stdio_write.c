@@ -19,6 +19,8 @@ size_t __stdio_write(FILE *f, const unsigned char *buf, size_t len)
 			return len;
 		}
 		if (cnt < 0) {
+			if (errno == EINTR)
+				continue;
 			f->wpos = f->wbase = f->wend = 0;
 			f->flags |= F_ERR;
 			return iovcnt == 2 ? 0 : len-iov[0].iov_len;

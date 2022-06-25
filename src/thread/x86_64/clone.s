@@ -1,28 +1,57 @@
 .text
+.extern __hq_init
+.extern __hq_syscall
 .global __clone
 .hidden __clone
 .type   __clone,@function
 __clone:
+	# Save arguments onto the stack, for __hq_syscall()
+	push %rdi
+	push %rsi
+	push %rdx
+	push %rcx
+	push %r8
+	push %r9
+
+	mov $56, %rdi
+	call __hq_syscall
+
+	# Restore saved arguments, for clone()
+	pop %r8
+	pop %rdx
+	pop %rcx
+	pop %rdi
+	pop %rsi
+	pop %rbx
+
 	xor %eax,%eax
 	mov $56,%al
-	mov %rdi,%r11
-	mov %rdx,%rdi
-	mov %r8,%rdx
-	mov %r9,%r8
 	mov 8(%rsp),%r10
-	mov %r11,%r9
 	and $-16,%rsi
 	sub $8,%rsi
 	mov %rcx,(%rsi)
 	syscall
+
 	test %eax,%eax
-	jnz 1f
+	jnz end
+
+	# Skip if CLONE_THREAD is set
+	and $0x00010000,%rdi
+	jnz cont
+	# Reinitialize after fork
+	mov $1,%rdi
+	call __hq_init
+
+cont:
 	xor %ebp,%ebp
 	pop %rdi
-	call *%r9
+	call *%rbx
+	# Save return value into callee-preserved register, for __hq_syscall()
 	mov %eax,%edi
 	xor %eax,%eax
 	mov $60,%al
 	syscall
 	hlt
-1:	ret
+
+end:
+	ret

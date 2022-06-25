@@ -395,4 +395,86 @@ hidden void __procfdname(char __buf[static 15+3*sizeof(int)], unsigned);
 
 hidden void *__vdsosym(const char *, const char *);
 
+static __attribute__((always_inline)) inline long __hq_raw_syscall0(long num) {
+    long ret;
+    __asm__ volatile("syscall"
+                     : "=a"(ret)
+                     : "0"(num)
+                     : "memory", "cc", "r11", "cx");
+    return ret;
+}
+
+static __attribute__((always_inline)) inline long
+__hq_raw_syscall1(long num, const unsigned long a1) {
+    long ret;
+    __asm__ volatile("syscall"
+                     : "=a"(ret)
+                     : "0"(num), "D"(a1)
+                     : "memory", "cc", "r11", "cx");
+    return ret;
+}
+
+static __attribute__((always_inline)) inline long
+__hq_raw_syscall2(long num, const unsigned long a1, const unsigned long a2) {
+    long ret;
+    __asm__ volatile("syscall"
+                     : "=a"(ret)
+                     : "0"(num), "D"(a1), "S"(a2)
+                     : "memory", "cc", "r11", "cx");
+    return ret;
+}
+
+static __attribute__((always_inline)) inline long
+__hq_raw_syscall3(long num, const unsigned long a1, const unsigned long a2,
+                  const unsigned long a3) {
+    long ret;
+    __asm__ volatile("syscall"
+                     : "=a"(ret)
+                     : "0"(num), "D"(a1), "S"(a2), "d"(a3)
+                     : "memory", "cc", "r11", "cx");
+    return ret;
+}
+
+static __attribute__((always_inline)) inline long
+__hq_raw_syscall4(long num, const unsigned long a1, const unsigned long a2,
+                  const unsigned long a3, const unsigned long _a4) {
+    long ret;
+    long register a4 __asm__("r10") = _a4;
+    __asm__ volatile("syscall"
+                     : "=a"(ret)
+                     : "0"(num), "D"(a1), "S"(a2), "d"(a3), "r"(a4)
+                     : "memory", "cc", "r11", "cx");
+    return ret;
+}
+
+static __attribute__((always_inline)) inline long
+__hq_raw_syscall5(long num, const unsigned long a1, const unsigned long a2,
+                  const unsigned long a3, const unsigned long _a4,
+                  const unsigned long _a5) {
+    long ret;
+    long register a4 __asm__("r10") = _a4;
+    long register a5 __asm__("r8") = _a5;
+    __asm__ volatile("syscall"
+                     : "=a"(ret)
+                     : "0"(num), "D"(a1), "S"(a2), "d"(a3), "r"(a4), "r"(a5)
+                     : "memory", "cc", "r11", "cx");
+    return ret;
+}
+
+static __attribute__((always_inline)) inline long
+__hq_raw_syscall6(long num, const unsigned long a1, const unsigned long a2,
+                  const unsigned long a3, const unsigned long _a4,
+                  const unsigned long _a5, const unsigned long _a6) {
+    long ret;
+    long register a4 __asm__("r10") = _a4;
+    long register a5 __asm__("r8") = _a5;
+    long register a6 __asm__("r9") = _a6;
+    __asm__ volatile("syscall"
+                     : "=a"(ret)
+                     : "0"(num), "D"(a1), "S"(a2), "d"(a3), "r"(a4), "r"(a5),
+                       "r"(a6)
+                     : "memory", "cc", "r11", "cx");
+    return ret;
+}
+
 #endif
